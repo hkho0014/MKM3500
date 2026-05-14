@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StyleFit AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>Monash Clothing</h1>
+        <p class="eyebrow">Powered by StyleFit AI</p>
+      </div>
+      <div class="header-actions">
+        <button class="icon-button" id="search-button" aria-label="Search inventory" title="Search">
+          <span data-lucide="search"></span>
+        </button>
+        <button class="icon-button bag-button" id="bag-button" aria-label="Shopping bag" title="Bag">
+          <span data-lucide="shopping-bag"></span>
+          <span class="bag-count" id="bag-count">0</span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="search-page" id="search-page" aria-label="Search inventory" hidden>
+        <div class="search-page-header">
+          <button class="icon-button" id="back-search" aria-label="Back to inventory" title="Back">
+            <span data-lucide="arrow-left"></span>
+          </button>
+          <div class="search-panel">
+            <span data-lucide="search"></span>
+            <input id="search-input" type="search" placeholder="Search by item, colour, fit, or ID" />
+            <button class="clear-search" id="clear-search" type="button">Clear</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="visualise-action">
+        <button class="filter-toggle" id="filter-toggle" type="button" aria-expanded="false" aria-controls="inventory-toolbar" aria-label="Show inventory filters" title="Filters">
+          <span data-lucide="sliders-horizontal"></span>
+        </button>
+        <button class="visualise-button" id="visualise-button" type="button">
+          <span data-lucide="eye"></span>
+          Visualise my Outfit
+        </button>
+      </div>
+
+      <section class="visualise-choice" id="visualise-choice" aria-label="Visualise options" hidden>
+        <button class="choice-button" id="select-own-outfit" type="button">
+          <span data-lucide="shirt"></span>
+          Select own outfit
+        </button>
+        <button class="choice-button primary" id="ai-recommend-outfit" type="button">
+          <span data-lucide="sparkles"></span>
+          AI Recommend Outfit
+        </button>
+      </section>
+
+      <section class="inventory-toolbar" id="inventory-toolbar" aria-label="Inventory filters">
+        <div class="filter-group" role="tablist" aria-label="Customer">
+          <button class="filter-pill active" data-filter-type="gender" data-filter-value="all">All</button>
+          <button class="filter-pill" data-filter-type="gender" data-filter-value="Men">Men</button>
+          <button class="filter-pill" data-filter-type="gender" data-filter-value="Women">Women</button>
+        </div>
+
+        <div class="filter-group" role="tablist" aria-label="Clothing type">
+          <button class="filter-pill active" data-filter-type="type" data-filter-value="all">All clothes</button>
+          <button class="filter-pill" data-filter-type="type" data-filter-value="Top">Tops</button>
+          <button class="filter-pill" data-filter-type="type" data-filter-value="Bottom">Bottoms</button>
+        </div>
+      </section>
+
+      <section class="summary-strip" aria-label="Inventory summary">
+        <div>
+          <strong id="visible-count">20</strong>
+          <span>items ready for outfit pairing</span>
+        </div>
+        <div>
+          <strong>4</strong>
+          <span>starter categories</span>
+        </div>
+        <div>
+          <strong>XS-XL</strong>
+          <span>sample size range</span>
+        </div>
+      </section>
+
+      <section class="inventory-grid" id="inventory-grid" aria-label="Clothing inventory"></section>
+    </main>
+
+    <aside class="cart-drawer" id="cart-drawer" aria-label="Shopping bag" aria-hidden="true">
+      <div class="cart-panel">
+        <div class="cart-header">
+          <div>
+            <p class="eyebrow">Shopping Bag</p>
+            <h2>Your outfit picks</h2>
+          </div>
+          <button class="icon-button" id="close-cart" aria-label="Close bag" title="Close">
+            <span data-lucide="x"></span>
+          </button>
+        </div>
+        <div class="cart-items" id="cart-items"></div>
+        <div class="cart-footer">
+          <div class="cart-total-row">
+            <span>Total</span>
+            <strong id="cart-total">RM 0.00</strong>
+          </div>
+          <button class="checkout-button" type="button">Checkout</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="size-modal" id="size-modal" role="dialog" aria-modal="true" aria-labelledby="size-modal-title" hidden>
+      <div class="size-panel">
+        <div class="size-header">
+          <div>
+            <p class="eyebrow">Choose Size</p>
+            <h2 id="size-modal-title">Select a size</h2>
+            <p id="size-modal-detail"></p>
+          </div>
+          <button class="icon-button" id="close-size-modal" aria-label="Close size picker" title="Close">
+            <span data-lucide="x"></span>
+          </button>
+        </div>
+        <div class="size-options" id="size-options"></div>
+        <button class="checkout-button" id="confirm-size" type="button" disabled>Add to bag</button>
+      </div>
+    </div>
+
+    <div class="profile-modal" id="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title" hidden>
+      <form class="profile-panel" id="profile-form">
+        <div class="size-header">
+          <div>
+            <p class="eyebrow">AI Outfit Profile</p>
+            <h2 id="profile-modal-title">Tell us your fit preferences</h2>
+          </div>
+          <button class="icon-button" id="close-profile-modal" type="button" aria-label="Close profile form" title="Close">
+            <span data-lucide="x"></span>
+          </button>
+        </div>
+
+        <label class="form-field">
+          <span>Gender</span>
+          <select id="profile-gender" required>
+            <option value="">Select gender</option>
+            <option value="Men">Male</option>
+            <option value="Women">Female</option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Height (cm)</span>
+          <input id="profile-height" type="number" min="120" max="220" placeholder="e.g. 170" required />
+        </label>
+
+        <label class="form-field">
+          <span>Body Size</span>
+          <select id="profile-body-size" required>
+            <option value="">Select body size</option>
+            <option>Slim</option>
+            <option>Medium</option>
+            <option>Heavy</option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Preferred Style</span>
+          <select id="profile-style" required>
+            <option value="">Select preferred style</option>
+            <option>Minimalist</option>
+            <option>Casual</option>
+            <option>Streetwear</option>
+            <option>Smart Casual</option>
+            <option>Sporty</option>
+            <option>Preppy</option>
+            <option>Y2K</option>
+            <option>Elegant</option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Color Preference</span>
+          <select id="profile-color" required>
+            <option value="">Select color preference</option>
+            <option>Neutral</option>
+            <option>Monochrome</option>
+            <option>Earth Tones</option>
+            <option>Pastel</option>
+            <option>Bold Colors</option>
+            <option>Dark Palette</option>
+            <option>Light Palette</option>
+            <option>No Preference</option>
+          </select>
+        </label>
+
+        <div class="profile-actions">
+          <button class="reset-button" type="reset">Reset</button>
+          <button class="checkout-button" type="submit">Continue</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="photo-modal" id="photo-modal" role="dialog" aria-modal="true" aria-labelledby="photo-modal-title" hidden>
+      <form class="profile-panel" id="photo-form">
+        <div class="size-header">
+          <div>
+            <p class="eyebrow">Photo Upload</p>
+            <h2 id="photo-modal-title">Upload a clear face photo</h2>
+            <p id="photo-modal-copy">Use a front-facing picture with good lighting.</p>
+          </div>
+          <button class="icon-button" id="close-photo-modal" type="button" aria-label="Close photo upload" title="Close">
+            <span data-lucide="x"></span>
+          </button>
+        </div>
+
+        <label class="upload-field">
+          <span data-lucide="image-plus"></span>
+          <strong>Choose picture</strong>
+          <small>PNG, JPG, or JPEG</small>
+          <input id="profile-photo" type="file" accept="image/png,image/jpeg" required />
+        </label>
+
+        <div class="photo-preview" id="photo-preview" hidden>
+          <button class="remove-photo" id="remove-photo" type="button" aria-label="Remove uploaded photo">
+            <span data-lucide="x"></span>
+          </button>
+          <img id="photo-preview-image" alt="Uploaded user preview" />
+        </div>
+
+        <p class="form-error" id="photo-error" hidden></p>
+
+        <div class="profile-actions">
+          <button class="reset-button" id="back-to-profile" type="button">Back</button>
+          <button class="checkout-button" type="submit">Generate</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="own-outfit-modal" id="own-outfit-modal" role="dialog" aria-modal="true" aria-labelledby="own-outfit-title" hidden>
+      <div class="own-outfit-panel">
+        <div class="size-header">
+          <div>
+            <p class="eyebrow">Select Own Outfit</p>
+            <h2 id="own-outfit-title">Choose one top and one bottom</h2>
+            <p>Both pieces must come from the same gender category.</p>
+          </div>
+          <button class="icon-button" id="close-own-outfit" type="button" aria-label="Close own outfit picker" title="Close">
+            <span data-lucide="x"></span>
+          </button>
+        </div>
+
+        <div class="own-gender-filter" aria-label="Manual outfit gender filter">
+          <button class="filter-pill active" type="button" data-own-gender="Men">Men</button>
+          <button class="filter-pill" type="button" data-own-gender="Women">Women</button>
+        </div>
+
+        <div class="own-selection-grid">
+          <section>
+            <h3>Tops</h3>
+            <div class="own-option-grid" id="own-top-options"></div>
+          </section>
+          <section>
+            <h3>Bottoms</h3>
+            <div class="own-option-grid" id="own-bottom-options"></div>
+          </section>
+        </div>
+
+        <p class="form-error" id="own-outfit-error" hidden></p>
+
+        <div class="profile-actions">
+          <button class="reset-button" id="reset-own-outfit" type="button">Reset</button>
+          <button class="checkout-button" id="continue-own-outfit" type="button">Continue</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="own-profile-modal" id="own-profile-modal" role="dialog" aria-modal="true" aria-labelledby="own-profile-title" hidden>
+      <form class="profile-panel" id="own-profile-form">
+        <div class="size-header">
+          <div>
+            <p class="eyebrow">Character Profile</p>
+            <h2 id="own-profile-title">Tell us your body details</h2>
+          </div>
+          <button class="icon-button" id="close-own-profile" type="button" aria-label="Close own profile form" title="Close">
+            <span data-lucide="x"></span>
+          </button>
+        </div>
+
+        <label class="form-field">
+          <span>Gender</span>
+          <select id="own-profile-gender" required>
+            <option value="">Select gender</option>
+            <option value="Men">Male</option>
+            <option value="Women">Female</option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Height (cm)</span>
+          <input id="own-profile-height" type="number" min="120" max="220" placeholder="e.g. 170" required />
+        </label>
+
+        <label class="form-field">
+          <span>Body Size</span>
+          <select id="own-profile-body-size" required>
+            <option value="">Select body size</option>
+            <option>Slim</option>
+            <option>Medium</option>
+            <option>Heavy</option>
+          </select>
+        </label>
+
+        <p class="form-error" id="own-profile-error" hidden></p>
+
+        <div class="profile-actions">
+          <button class="reset-button" id="back-to-own-outfit" type="button">Back</button>
+          <button class="checkout-button" type="submit">Generate</button>
+        </div>
+      </form>
+    </div>
+
+    <div
+      class="recommendation-modal"
+      id="recommendation-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="recommendation-modal-title"
+      hidden
+    >
+      <div class="recommendation-panel">
+        <div class="size-header">
+          <div>
+            <p class="eyebrow">AI Recommended Outfits</p>
+            <h2 id="recommendation-modal-title">Swipe through your outfit sets</h2>
+            <p id="recommendation-summary"></p>
+          </div>
+          <button
+            class="icon-button"
+            id="close-recommendation-modal"
+            type="button"
+            aria-label="Close outfit recommendations"
+            title="Close"
+          >
+            <span data-lucide="x"></span>
+          </button>
+        </div>
+
+        <div class="recommendation-stage" id="recommendation-stage"></div>
+
+        <div class="carousel-controls">
+          <button class="icon-button" id="previous-outfit" type="button" aria-label="Previous outfit">
+            <span data-lucide="chevron-left"></span>
+          </button>
+          <span id="outfit-position">1 / 1</span>
+          <button class="icon-button" id="next-outfit" type="button" aria-label="Next outfit">
+            <span data-lucide="chevron-right"></span>
+          </button>
+        </div>
+
+        <button class="preview-reference-button" id="preview-reference-button" type="button">
+          <span data-lucide="image"></span>
+          Create character-style outfit preview
+        </button>
+        <p class="form-error" id="preview-error" hidden></p>
+      </div>
+    </div>
+
+    <div class="preview-modal" id="preview-modal" role="dialog" aria-modal="true" aria-labelledby="preview-modal-title" hidden>
+      <div class="preview-panel">
+        <div class="size-header">
+          <div>
+            <p class="eyebrow">Character Preview</p>
+            <h2 id="preview-modal-title">Outfit in a real-world setting</h2>
+          </div>
+          <button class="icon-button" id="close-preview-modal" type="button" aria-label="Close preview" title="Close">
+            <span data-lucide="x"></span>
+          </button>
+        </div>
+        <div class="generated-preview" id="generated-preview">
+          <img id="generated-preview-image" alt="Generated character-style outfit preview" />
+        </div>
+        <p class="preview-disclaimer">Generated image may be inaccurate and is for illustration purposes only.</p>
+        <button class="preview-cart-button" id="add-preview-outfit" type="button" disabled>
+          <span data-lucide="shopping-bag"></span>
+          Add outfit to cart
+        </button>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
