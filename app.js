@@ -890,6 +890,7 @@ function validateOwnOutfitSelection() {
 }
 
 function openRecommendationModal() {
+  document.body.classList.add("modal-lock");
   recommendationModal.hidden = false;
   renderRecommendedOutfit();
   lucide.createIcons();
@@ -897,6 +898,7 @@ function openRecommendationModal() {
 
 function closeRecommendationPicker() {
   recommendationModal.hidden = true;
+  document.body.classList.remove("modal-lock");
 }
 
 function openPreviewModal() {
