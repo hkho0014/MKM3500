@@ -973,18 +973,26 @@ main {
 
 @media (max-width: 720px) {
   .recommendation-modal {
-    align-items: start;
-    place-items: start center;
-    overflow-y: auto;
+    display: block;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
     padding: 12px;
+  }
+
+  .recommendation-modal[hidden] {
+    display: none;
   }
 
   .recommendation-panel {
     width: 100%;
-    max-height: none;
-    min-height: calc(100svh - 24px);
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+    min-height: 0;
     padding: 18px;
-    overflow: visible;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .recommendation-panel .size-header {
