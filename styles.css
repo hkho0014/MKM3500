@@ -615,8 +615,13 @@ main {
 
 .profile-panel {
   display: flex;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   flex-direction: column;
   gap: 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .own-selection-grid {
@@ -713,10 +718,16 @@ main {
 }
 
 .profile-actions {
+  position: sticky;
+  bottom: -22px;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 10px;
   align-items: center;
+  margin: 0 -22px -22px;
+  padding: 12px 22px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .reset-button {
@@ -773,7 +784,7 @@ main {
 .photo-preview img {
   display: block;
   width: 100%;
-  max-height: 260px;
+  max-height: min(260px, 34vh);
   object-fit: contain;
 }
 
