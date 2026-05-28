@@ -454,6 +454,64 @@ function parseJsonObject(text) {
   }
 }
 
+function warningMessage(message, fallback) {
+  const text = (message || fallback).trim();
+  return /^warning:/i.test(text) ? text : `Warning: ${text}`;
+}
+
+async function validateUploadedPhoto(file, profile) {
+  if (!window.puter?.ai?.chat) {
+    throw new Error("Puter.js OpenAI chat is not loaded.");
+  }
+
+  const selectedProfile = profile.gender === "Men" ? "male" : "female";
+  const prompt = `
+You are validating a customer photo before an AI fashion preview.
+
+Selected profile:
+- Gender selection: ${profile.gender} (${selectedProfile} profile)
+
+Check only these requirements:
+1. The image must show a human person.
+2. The image must show one main person only, not a group photo.
+3. If the person's apparent gender presentation clearly conflicts with the selected ${selectedProfile} profile, flag it as a mismatch. If uncertain, do not flag a mismatch.
+
+Return JSON only in this exact shape:
+{
+  "isHuman": true,
+  "isSinglePerson": true,
+  "hasGenderProfileMismatch": false,
+  "message": "Short warning for the user if any requirement fails."
+}
+  `.trim();
+
+  const response = await puter.ai.chat(prompt, file, {
+    model: puterTextModel,
+    temperature: 0,
+    max_tokens: 350,
+  });
+  const validation = parseJsonObject(chatResponseText(response));
+
+  if (validation.isHuman !== true) {
+    throw new Error(warningMessage(validation.message, "Please upload a clear photo of a human person."));
+  }
+
+  if (validation.isSinglePerson !== true) {
+    throw new Error(warningMessage(validation.message, "Please upload a photo with only one person, not a group photo."));
+  }
+
+  if (validation.hasGenderProfileMismatch === true) {
+    throw new Error(
+      warningMessage(
+        validation.message,
+        `The uploaded photo appears inconsistent with the selected ${selectedProfile} profile. Please upload another photo or change the selected profile.`
+      )
+    );
+  }
+
+  return validation;
+}
+
 function publicInventoryForAI(profile) {
   const topPrefix = profile.gender === "Men" ? "mt" : "wt";
   const bottomPrefix = profile.gender === "Men" ? "mb" : "wb";
@@ -1410,10 +1468,12 @@ photoForm.addEventListener("submit", async (event) => {
 
   const generateButton = photoForm.querySelector('button[type="submit"]');
   generateButton.disabled = true;
-  generateButton.textContent = "Analyzing...";
+  generateButton.textContent = "Validating...";
 
   try {
     const activeProfile = photoFlowMode === "own-preview" ? pendingOwnProfile : outfitProfile;
+    await validateUploadedPhoto(uploadedProfilePhoto, activeProfile);
+    generateButton.textContent = "Analyzing...";
     uploadedProfileAnalysis = await analyzeUploadedPhoto(uploadedProfilePhoto, activeProfile);
     generateButton.textContent = "Generating...";
 
